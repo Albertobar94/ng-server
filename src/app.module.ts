@@ -14,12 +14,14 @@ import { User } from "./user/entities/user.entity";
       useFactory: (configService: ConfigService) => ({
         type: "postgres",
         host: configService.get("DB_HOST"),
-        port: +configService.get("DB_PORT"),
+        port: Number(configService.get("DB_PORT")),
         username: configService.get("DB_USER"),
         password: configService.get("DB_PWD"),
         database: configService.get("DB_NAME"),
         entities: [User],
-        synchronize: true,
+        poolSize: process.env.NODE_ENV === "production" ? 1 : 10,
+        logging: process.env.NODE_ENV === "production" ? false : true,
+        migrations: ["src/database/migration/**/*.ts"],
       }),
       dataSourceFactory: async (options) => {
         const dataSource = await new DataSource(options).initialize();

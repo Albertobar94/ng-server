@@ -1,17 +1,17 @@
 import { DataSource } from "typeorm";
+import * as dotenv from "dotenv"; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 
-const DbDataSource = new DataSource({
+dotenv.config();
+
+const DbMigrationConfig = new DataSource({
   type: "postgres",
-  host: "localhost",
-  port: 5432,
-  username: "postgres",
-  password: "postgres",
-  database: "community_channel",
-  synchronize: false,
+  host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT),
+  username: process.env.DB_USER,
+  password: process.env.DB_PWD,
+  database: process.env.DB_NAME,
   logging: true,
-  poolSize: 10,
-  migrationsRun: false,
   migrations: ["src/database/migration/**/*.ts"],
 });
 
-export default DbDataSource;
+export default DbMigrationConfig;
