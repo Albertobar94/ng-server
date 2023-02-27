@@ -5,5 +5,5 @@ export interface RepositoryInterface<
   selectAll?(): Promise<T[]>;
   insert(data: T): Promise<T | T[]>;
   upsert(data: T): Promise<T | T[]>;
-  remove(id: T): Promise<void>;
+  remove(id: T["id"]): Promise<void>;
 }
