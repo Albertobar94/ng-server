@@ -4,5 +4,11 @@
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": true
     },
-    "eslint.validate": ["typescript", "javascript"]
+    "eslint.validate": [
+        "typescript",
+        "javascript"
+    ],
+    "cSpell.words": [
+        "nestjs"
+    ]
 }
