@@ -8,14 +8,14 @@ import {
   HttpCode,
   Put,
 } from "@nestjs/common";
-import { CreateUserDto } from "./dto/create-user.dto";
-import { UpdateUserDto } from "./dto/update-user.dto";
 import {
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiOkResponse,
   ApiTags,
 } from "@nestjs/swagger";
+import { CreateUserDto } from "./dto/create-user.dto";
+import { UpdateUserDto } from "./dto/update-user.dto";
 import { UserEntity } from "./entities/user.entity";
 import { UserRepository } from "./repository/user.repository";
 
@@ -50,13 +50,9 @@ export class UserController {
   })
   @HttpCode(201)
   @Post()
-  async postUser(@Body() data: CreateUserDto) {
-    const entity = UserEntity.create(data);
-    const user = await this.userRepository.insert(entity);
-
-    return {
-      user,
-    };
+  async postUser(@Body() user: CreateUserDto): Promise<UserEntity> {
+    const entity = UserEntity.create(user);
+    return this.userRepository.insert(entity);
   }
 
   /* -------------------------------------------------------------------------- */
@@ -68,13 +64,9 @@ export class UserController {
     type: [UserEntity],
   })
   @Put()
-  async putUser(@Body() data: UpdateUserDto) {
-    const entity = UserEntity.update(data);
-    const user = await this.userRepository.upsert(entity);
-
-    return {
-      user,
-    };
+  async putUser(@Body() user: UpdateUserDto): Promise<UserEntity> {
+    const entity = UserEntity.update(user);
+    return this.userRepository.upsert(entity);
   }
 
   /* -------------------------------------------------------------------------- */
@@ -86,9 +78,8 @@ export class UserController {
   })
   @HttpCode(204)
   @Delete("/:id")
-  async deleteUser(@Param("id") id: UserEntity["id"]) {
-    const entity = UserEntity.setId(id);
-    await this.userRepository.remove(entity);
+  async deleteUser(@Param("id") id: UserEntity["id"]): Promise<void> {
+    await this.userRepository.remove(id);
 
     return;
   }

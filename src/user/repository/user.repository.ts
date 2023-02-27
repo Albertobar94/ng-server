@@ -23,7 +23,7 @@ export class UserRepository implements RepositoryInterface<UserEntity> {
     return this.dataSource.getRepository(UserEntity).save(entity);
   }
 
-  async remove(entity: UserEntity): Promise<void> {
-    await this.dataSource.getRepository(UserEntity).remove(entity);
+  async remove(id: UserEntity["id"]): Promise<void> {
+    await this.dataSource.getRepository(UserEntity).delete(id);
   }
 }

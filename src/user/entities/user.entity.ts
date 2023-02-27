@@ -1,8 +1,8 @@
 import { randomUUID } from "crypto";
+import { IsString } from "class-validator";
 import { plainToInstance } from "class-transformer";
 import { Column, Entity, PrimaryColumn } from "typeorm";
 import { UserInterface } from "../interface/user.interface";
-import { IsString } from "class-validator";
 
 @Entity({ name: "user" })
 export class UserEntity implements UserInterface {
@@ -18,8 +18,8 @@ export class UserEntity implements UserInterface {
   @IsString()
   readonly lastName: string;
 
-  public static create(user: UserInterface): UserEntity {
-    const id = user.id ?? randomUUID();
+  public static create(user: Omit<UserInterface, "id">): UserEntity {
+    const id = randomUUID();
 
     return plainToInstance(UserEntity, { ...user, id });
   }
@@ -28,9 +28,5 @@ export class UserEntity implements UserInterface {
     const id = user.id;
 
     return plainToInstance(UserEntity, { ...user, id });
-  }
-
-  public static setId(id: UserInterface["id"]): UserEntity {
-    return plainToInstance(UserEntity, { id });
   }
 }
