@@ -1,32 +1,47 @@
 import { randomUUID } from "crypto";
-import { IsString } from "class-validator";
 import { plainToInstance } from "class-transformer";
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryColumn,
+  UpdateDateColumn,
+} from "typeorm";
 import { UserInterface } from "../interface/user.interface";
 
 @Entity({ name: "user" })
 export class UserEntity implements UserInterface {
   @PrimaryColumn("uuid")
-  @IsString()
   readonly id: string;
 
   @Column({ name: "first_name" })
-  @IsString()
   readonly firstName: string;
 
   @Column({ name: "last_name" })
-  @IsString()
   readonly lastName: string;
 
-  public static create(user: Omit<UserInterface, "id">): UserEntity {
-    const id = randomUUID();
+  @CreateDateColumn({ name: "created_at", type: "timestamptz" })
+  readonly createdAt: Date;
 
-    return plainToInstance(UserEntity, { ...user, id });
+  @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
+  readonly updatedAt: Date;
+
+  public static create(
+    user: Omit<UserInterface, "id" | "createdAt" | "updatedAt">,
+  ): UserEntity {
+    const id = randomUUID();
+    const createdAt = new Date();
+    const updatedAt = new Date();
+
+    return plainToInstance(UserEntity, { ...user, createdAt, updatedAt, id });
   }
 
-  public static update(user: UserInterface): UserEntity {
+  public static update(
+    user: Omit<UserInterface, "createdAt" | "updatedAt">,
+  ): UserEntity {
     const id = user.id;
+    const updatedAt = new Date();
 
-    return plainToInstance(UserEntity, { ...user, id });
+    return plainToInstance(UserEntity, { ...user, updatedAt, id });
   }
 }

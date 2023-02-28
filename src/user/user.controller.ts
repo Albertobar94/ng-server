@@ -29,7 +29,7 @@ export class UserController {
   @ApiTags("User")
   @ApiOkResponse({
     description: "The record has been successfully fetched.",
-    type: [UserEntity],
+    // type: [UserEntity],
   })
   @Get(":id")
   async getUser(@Param("id") id: UserEntity["id"]) {
@@ -46,7 +46,7 @@ export class UserController {
   @ApiTags("User")
   @ApiCreatedResponse({
     description: "The record has been successfully created.",
-    type: [UserEntity],
+    // type: [UserEntity],
   })
   @HttpCode(201)
   @Post()
@@ -61,7 +61,7 @@ export class UserController {
   @ApiTags("User")
   @ApiOkResponse({
     description: "The record has been successfully updated.",
-    type: [UserEntity],
+    // type: [UserEntity],
   })
   @Put()
   async putUser(@Body() user: UpdateUserDto): Promise<UserEntity> {

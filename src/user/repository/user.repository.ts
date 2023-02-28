@@ -15,7 +15,7 @@ export class UserRepository implements RepositoryInterface<UserEntity> {
     return this.dataSource.getRepository(UserEntity).save(entity);
   }
 
-  async selectById(id: UserEntity["id"]): Promise<UserEntity> {
+  async selectById(id: UserEntity["id"]): Promise<UserEntity | null> {
     return this.dataSource.getRepository(UserEntity).findOne({ where: { id } });
   }
 
