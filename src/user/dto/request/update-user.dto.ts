@@ -1,7 +1,7 @@
 import { IsString } from "class-validator";
 import { PartialType } from "@nestjs/mapped-types";
 import { CreateUserDto } from "./create-user.dto";
-import { UserInterface } from "../interface/user.interface";
+import { UserInterface } from "../../interface/user.interface";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class UpdateUserDto
