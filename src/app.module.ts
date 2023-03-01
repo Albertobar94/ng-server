@@ -6,9 +6,9 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { UserModule } from "./user/user.module";
 import { UserEntity } from "./user/entities/user.entity";
 import { CommunityChannelModule } from "./community-channel/community-channel.module";
-// import { MessageEntity } from "./community-channel/entities/message.entity";
-// import { RoomParticipantEntity } from "./community-channel/entities/room-participant.entity";
-// import { RoomEntity } from "./community-channel/entities/room.entity";
+import { MessageEntity } from "./community-channel/entities/message.entity";
+import { RoomParticipantEntity } from "./community-channel/entities/room-participant.entity";
+import { RoomEntity } from "./community-channel/entities/room.entity";
 
 @Module({
   imports: [
@@ -35,9 +35,9 @@ import { CommunityChannelModule } from "./community-channel/community-channel.mo
         database: configService.get("DB_NAME"),
         entities: [
           UserEntity,
-          // MessageEntity,
-          // RoomParticipantEntity,
-          // RoomEntity,
+          MessageEntity,
+          RoomParticipantEntity,
+          RoomEntity,
         ],
         poolSize: process.env.NODE_ENV === "production" ? 1 : 10,
         logging: process.env.NODE_ENV === "production" ? false : true,
