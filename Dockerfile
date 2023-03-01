@@ -18,7 +18,7 @@ COPY . /home/app
 
 RUN npm install -g pnpm
 RUN pnpm config set store-dir .pnpm-store
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 RUN pnpm build
 
 # ---------------------------------------------------------------------------- #
@@ -28,8 +28,8 @@ RUN pnpm build
 FROM node:16.16.0-bullseye-slim AS release
 
 RUN apt-get update && apt-get upgrade -y 
-RUN apt-get install linux-tools-generic
-RUN ln -s /usr/lib/linux-tools/3.13.0-141-generic/perf /usr/bin/perf
+# RUN apt-get install linux-tools-generic
+# RUN ln -s /usr/lib/linux-tools/3.13.0-141-generic/perf /usr/bin/perf
 
 # Should be all feed in pipeline
 

@@ -21,7 +21,7 @@ services:
             - DB_NAME=community_channel
             - DB_USER=postgres
             - DB_PWD=postgres
-            - DB_HOST=localhost
+            - DB_HOST=ng-db
             - DB_PORT=5432
         command: ["/bin/bash", "./scripts/entrypoint.sh"]
     ng-db:
