@@ -1,8 +1,12 @@
-import { plainToInstance } from "class-transformer";
 import { Column, CreateDateColumn, Entity, PrimaryColumn } from "typeorm";
 
 @Entity({ name: "room_participant" })
 export class RoomParticipantEntity {
+  constructor(roomId: string, participant: string) {
+    this.roomId = roomId;
+    this.participant = participant;
+  }
+
   @PrimaryColumn("uuid", { name: "room_id" })
   readonly roomId: string;
 
@@ -10,34 +14,25 @@ export class RoomParticipantEntity {
   readonly participant: string;
 
   @CreateDateColumn({ name: "created_at", type: "timestamptz" })
-  readonly createdAt: Date;
+  createdAt: Date;
 
   @Column("timestamptz", { name: "deleted_at", nullable: true })
-  readonly deletedAt?: Date;
+  deletedAt?: Date;
 
   @Column("boolean", { default: false })
-  readonly deleted: boolean;
+  deleted: boolean;
 
-  public static addParticipant(
-    roomId: string,
-    participant: string,
-  ): RoomParticipantEntity {
-    return plainToInstance(RoomParticipantEntity, {
-      roomId,
-      participant,
-      createdAt: new Date(),
-    });
+  public setCreated(): RoomParticipantEntity {
+    this.deleted = false;
+    this.createdAt = new Date();
+
+    return this;
   }
 
-  public static removeParticipant(
-    roomId: string,
-    participant: string,
-  ): RoomParticipantEntity {
-    return plainToInstance(RoomParticipantEntity, {
-      roomId,
-      participant,
-      deleted: true,
-      deletedAt: new Date(),
-    });
+  public setDeleted(): RoomParticipantEntity {
+    this.deleted = true;
+    this.deletedAt = new Date();
+
+    return this;
   }
 }

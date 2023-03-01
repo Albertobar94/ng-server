@@ -1,5 +1,4 @@
 import { randomUUID } from "crypto";
-import { plainToInstance } from "class-transformer";
 import {
   Column,
   CreateDateColumn,
@@ -11,37 +10,41 @@ import { UserInterface } from "../interface/user.interface";
 
 @Entity({ name: "user" })
 export class UserEntity implements UserInterface {
+  constructor(firstName?: string, lastName?: string) {
+    this.id = randomUUID();
+    this.firstName = firstName;
+    this.lastName = lastName;
+  }
+
   @PrimaryColumn("uuid")
   readonly id: string;
 
   @Column({ name: "first_name" })
-  readonly firstName: string;
+  firstName: string;
 
   @Column({ name: "last_name" })
-  readonly lastName: string;
+  lastName: string;
 
   @CreateDateColumn({ name: "created_at", type: "timestamptz" })
-  readonly createdAt: Date;
+  createdAt: Date;
 
   @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
-  readonly updatedAt: Date;
+  updatedAt: Date;
 
-  public static create(
-    user: Omit<UserInterface, "id" | "createdAt" | "updatedAt">,
-  ): UserEntity {
-    const id = randomUUID();
-    const createdAt = new Date();
-    const updatedAt = new Date();
+  public setCreated(): UserEntity {
+    this.createdAt = new Date();
+    this.updatedAt = new Date();
 
-    return plainToInstance(UserEntity, { ...user, createdAt, updatedAt, id });
+    return this;
   }
 
-  public static update(
-    user: Omit<UserInterface, "createdAt" | "updatedAt">,
+  public update(
+    props: Omit<UserInterface, "createdAt" | "updatedAt">,
   ): UserEntity {
-    const id = user.id;
-    const updatedAt = new Date();
+    this.firstName = props.firstName;
+    this.lastName = props.lastName;
+    this.updatedAt = new Date();
 
-    return plainToInstance(UserEntity, { ...user, updatedAt, id });
+    return this;
   }
 }
