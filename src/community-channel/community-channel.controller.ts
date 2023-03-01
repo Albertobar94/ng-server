@@ -1,33 +1,35 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   Controller,
   Delete,
   Get,
   HttpCode,
   Param,
   Post,
+  Query,
   UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
-import {
-  ApiCreatedResponse,
-  ApiNoContentResponse,
-  ApiOkResponse,
-  ApiTags,
-} from "@nestjs/swagger";
+import { StatusCodes } from "http-status-codes";
+import { ApiNoContentResponse, ApiTags } from "@nestjs/swagger";
 import { RoomEntity } from "./entities/room.entity";
 import { MessageEntity } from "./entities/message.entity";
-import { RoomRepository } from "./repository/room.repository";
 import { CreateRoomDto } from "./dto/request/create-room.dto";
-import { ParticipantsDto } from "./dto/request/participants.dto";
-import { CreateMessageDto } from "./dto/request/create-message.dto";
+import { PageOptionsDto } from "src/shared/dto/page-options.dto";
+import { RoomResponseDto } from "./dto/response/room-response.dto";
 import { MessageRepository } from "./repository/message.repository";
+import { CreateMessageDto } from "./dto/request/create-message.dto";
 import { CommunityChannelService } from "./community-channel.service";
+import { ParticipantsDto } from "./dto/request/create-participants.dto";
 import { doesUserExistsGuard } from "src/guards/does-user-exists.guard";
+import { ApiResponse } from "../shared/decorators/api-response.decorator";
+import { MessageResponseDto } from "./dto/response/message-response.dto";
 
 @Controller("community-channel")
+@UseInterceptors(ClassSerializerInterceptor)
 export class CommunityChannelController {
   constructor(
-    private readonly roomRepository: RoomRepository,
     private readonly messageRepository: MessageRepository,
     private readonly communityChannelService: CommunityChannelService,
   ) {}
@@ -38,57 +40,27 @@ export class CommunityChannelController {
   /* ------------------------------- Create Room ------------------------------ */
 
   @ApiTags("Room")
-  @ApiCreatedResponse({
-    description: "The record has been successfully created.",
-    // type: [RoomResponseDto],
-  })
+  @ApiResponse(RoomResponseDto, StatusCodes.CREATED)
   @UseGuards(doesUserExistsGuard)
-  @HttpCode(201)
+  @HttpCode(StatusCodes.CREATED)
   @Post("/room")
   createRoom(@Body() createRoomDto: CreateRoomDto) {
-    const roomEntity = RoomEntity.create();
-
-    return this.communityChannelService.createRoom(
-      roomEntity,
-      createRoomDto.participants,
-    );
+    return this.communityChannelService.createRoom(createRoomDto);
   }
 
   /* ------------------------------ Get Room Info ----------------------------- */
 
   @ApiTags("Room")
-  @ApiOkResponse({
-    description: "The record has been successfully fetched.",
-    // type: [RoomResponseDto],
-  })
+  @ApiResponse(RoomResponseDto, StatusCodes.OK)
   @Get("/room/:roomId")
   getRoom(@Param("roomId") id: RoomEntity["id"]) {
-    return this.roomRepository.selectById(id);
+    return this.communityChannelService.getRoom(id);
   }
-
-  /* ------------------------------- Delete Room ------------------------------ */
-
-  @ApiTags("Room")
-  @ApiNoContentResponse({
-    description: "The record has been successfully deleted.",
-  })
-  @HttpCode(204)
-  @Delete("/room/:roomId")
-  remove(@Param("roomId") id: RoomEntity["id"]) {
-    return this.roomRepository.remove(id);
-  }
-
-  /* -------------------------------------------------------------------------- */
-  /*                                 Participant                                */
-  /* -------------------------------------------------------------------------- */
 
   /* ---------------------------- Add Participants ---------------------------- */
-  @ApiTags("Participant")
-  @ApiCreatedResponse({
-    description: "The record has been successfully created.",
-    // type: [ParticipantResponseDto],
-  })
-  @HttpCode(201)
+  @ApiTags("Room")
+  @ApiResponse(RoomResponseDto, StatusCodes.CREATED)
+  @HttpCode(StatusCodes.CREATED)
   @UseGuards(doesUserExistsGuard)
   @Post("/room/participants")
   addParticipants(@Body() { roomId, participants }: ParticipantsDto) {
@@ -96,12 +68,12 @@ export class CommunityChannelController {
   }
 
   /* --------------------------- Delete Participants -------------------------- */
-  @ApiTags("Participant")
+  @ApiTags("Room")
   @ApiNoContentResponse({
     description: "The record has been successfully deleted.",
   })
   @UseGuards(doesUserExistsGuard)
-  @HttpCode(204)
+  @HttpCode(StatusCodes.NO_CONTENT)
   @Delete("/room/participants")
   removeParticipants(@Body() { roomId, participants }: ParticipantsDto) {
     return this.communityChannelService.removeParticipants(
@@ -117,30 +89,25 @@ export class CommunityChannelController {
   /* ------------------------------ Get Messages ------------------------------ */
 
   @ApiTags("Message")
-  @ApiOkResponse({
-    description: "The record has been successfully fetched.",
-    // type: [RoomResponseDto],
-  })
+  @ApiResponse(MessageResponseDto, StatusCodes.OK)
   @Get("/room/:roomId/messages")
-  getMessages(@Param("roomId") roomId: string) {
-    return this.communityChannelService.getMessages(roomId);
+  getMessages(
+    @Param("roomId") roomId: string,
+    @Query() pageOptionsDto: PageOptionsDto,
+  ) {
+    return this.communityChannelService.getMessages(roomId, pageOptionsDto);
   }
 
   /* --------------------------- Create Text Message -------------------------- */
 
   @ApiTags("Message")
-  @ApiCreatedResponse({
-    description: "The record has been successfully created.",
-    // type: [RoomResponseDto],
-  })
-  @HttpCode(201)
+  @ApiResponse(MessageResponseDto, StatusCodes.CREATED)
+  @HttpCode(StatusCodes.CREATED)
   @UseGuards(doesUserExistsGuard)
   @Post("/message/text-message")
   createTextMessage(@Body() createMessageDto: CreateMessageDto) {
     const entity = MessageEntity.createTextMessage(createMessageDto);
 
-    console.log(entity);
-
-    return this.messageRepository.insert(entity);
+    return this.messageRepository.save(entity);
   }
 }

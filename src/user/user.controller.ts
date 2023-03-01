@@ -1,86 +1,56 @@
+import { StatusCodes } from "http-status-codes";
+import { ApiResponse } from "./../shared/decorators/api-response.decorator";
 import {
   Controller,
   Get,
   Post,
   Body,
   Param,
-  Delete,
   HttpCode,
-  Put,
+  UseInterceptors,
+  ClassSerializerInterceptor,
 } from "@nestjs/common";
-import {
-  ApiCreatedResponse,
-  ApiNoContentResponse,
-  ApiOkResponse,
-  ApiTags,
-} from "@nestjs/swagger";
-import { CreateUserDto } from "./dto/create-user.dto";
-import { UpdateUserDto } from "./dto/update-user.dto";
+import { ApiTags } from "@nestjs/swagger";
+import { PageDto } from "src/shared/dto/page.dto";
 import { UserEntity } from "./entities/user.entity";
+import { CreateUserDto } from "./dto/request/create-user.dto";
 import { UserRepository } from "./repository/user.repository";
+import { UserResponseDto } from "./dto/response/user-response.dto";
 
 @Controller("user")
+@UseInterceptors(ClassSerializerInterceptor)
 export class UserController {
   constructor(private readonly userRepository: UserRepository) {}
 
-  /* -------------------------------------------------------------------------- */
-  /*                               Get User By Id                               */
-  /* -------------------------------------------------------------------------- */
+  /* ----------------------------- Get User By Id ----------------------------- */
+
   @ApiTags("User")
-  @ApiOkResponse({
-    description: "The record has been successfully fetched.",
-    // type: [UserEntity],
-  })
+  @ApiResponse(UserResponseDto, StatusCodes.OK)
   @Get(":id")
   async getUser(@Param("id") id: UserEntity["id"]) {
-    const user = await this.userRepository.selectById(id);
+    const user = await this.userRepository
+      .createQueryBuilder()
+      .where({ id })
+      .getOne();
 
-    return {
-      user,
-    };
+    return new PageDto(new Array(user), null);
   }
 
-  /* -------------------------------------------------------------------------- */
-  /*                                 Create User                                */
-  /* -------------------------------------------------------------------------- */
+  /* ------------------------------- Create User ------------------------------ */
+
   @ApiTags("User")
-  @ApiCreatedResponse({
-    description: "The record has been successfully created.",
-    // type: [UserEntity],
-  })
-  @HttpCode(201)
+  @ApiResponse(UserResponseDto, StatusCodes.CREATED)
+  @HttpCode(StatusCodes.CREATED)
   @Post()
-  async postUser(@Body() user: CreateUserDto): Promise<UserEntity> {
-    const entity = UserEntity.create(user);
-    return this.userRepository.insert(entity);
-  }
+  async postUser(
+    @Body() userDto: CreateUserDto,
+  ): Promise<PageDto<CreateUserDto>> {
+    const entity = new UserEntity(
+      userDto.firstName,
+      userDto.lastName,
+    ).setCreated();
+    const user = await this.userRepository.save(entity);
 
-  /* -------------------------------------------------------------------------- */
-  /*                                 Update User                                */
-  /* -------------------------------------------------------------------------- */
-  @ApiTags("User")
-  @ApiOkResponse({
-    description: "The record has been successfully updated.",
-    // type: [UserEntity],
-  })
-  @Put()
-  async putUser(@Body() user: UpdateUserDto): Promise<UserEntity> {
-    const entity = UserEntity.update(user);
-    return this.userRepository.upsert(entity);
-  }
-
-  /* -------------------------------------------------------------------------- */
-  /*                                 Delete User                                */
-  /* -------------------------------------------------------------------------- */
-  @ApiTags("User")
-  @ApiNoContentResponse({
-    description: "The record has been successfully deleted.",
-  })
-  @HttpCode(204)
-  @Delete("/:id")
-  async deleteUser(@Param("id") id: UserEntity["id"]): Promise<void> {
-    await this.userRepository.remove(id);
-
-    return;
+    return new PageDto(new Array(user), null);
   }
 }

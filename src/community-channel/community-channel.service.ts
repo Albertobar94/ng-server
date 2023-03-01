@@ -1,10 +1,14 @@
-import { RoomEntity } from "./entities/room.entity";
 import { Injectable } from "@nestjs/common";
-import { MessageRepository } from "./repository/message.repository";
+import { PageDto } from "../shared/dto/page.dto";
+import { RoomEntity } from "./entities/room.entity";
+import { PageMetaDto } from "../shared/dto/page-meta.dto";
 import { MessageEntity } from "./entities/message.entity";
+import { RoomRepository } from "./repository/room.repository";
+import { PageOptionsDto } from "../shared/dto/page-options.dto";
+import { MessageRepository } from "./repository/message.repository";
 import { RoomParticipantEntity } from "./entities/room-participant.entity";
 import { RoomParticipantRepository } from "./repository/room-participant.repository";
-import { RoomRepository } from "./repository/room.repository";
+import { CreateRoomDto } from "./dto/request/create-room.dto";
 
 @Injectable()
 export class CommunityChannelService {
@@ -14,50 +18,80 @@ export class CommunityChannelService {
     private readonly roomParticipantRepository: RoomParticipantRepository,
   ) {}
 
-  async createRoom(
-    roomEntity: RoomEntity,
-    participants: ReadonlyArray<string>,
-  ) {
-    const participantEntities = participants.map((p) =>
-      RoomParticipantEntity.addParticipant(roomEntity.id, p),
+  async createRoom({ participants }: CreateRoomDto) {
+    const room = new RoomEntity().create();
+    const newParticipantEntities = participants.map((p) =>
+      new RoomParticipantEntity(room.id, p).setCreated(),
     );
-    await this.roomParticipantRepository.insert(participantEntities);
+    const [roomEntity, participantEntities] = await Promise.all([
+      this.roomRepository.save(room),
+      this.roomParticipantRepository.save(newParticipantEntities),
+    ]);
 
-    return this.roomRepository.insert(roomEntity);
+    roomEntity.setParticipants(participantEntities);
+
+    return new PageDto(new Array(roomEntity), null);
   }
 
-  async getRoom(roomId: string) {
-    const room = this.roomRepository.selectById(roomId);
-    const participants = this.roomParticipantRepository.selectAll(roomId);
+  async getRoom(roomId: string): Promise<PageDto<RoomEntity>> {
+    const entity = await this.roomRepository
+      .createQueryBuilder()
+      .leftJoinAndSelect(
+        "room.participants",
+        "room_participant",
+        "room_participant.room_id = :roomId",
+        { roomId },
+      )
+      .where({ id: roomId })
+      .getOne()
+      .then((e) => new Array(e));
 
-    return room;
+    return new PageDto(entity, null);
   }
 
   async getMessages(
     roomId: RoomEntity["id"],
-  ): Promise<MessageEntity | MessageEntity[]> {
-    return this.messageRepository.selectByRoomId(roomId);
+    pageOptionsDto: PageOptionsDto,
+  ): Promise<PageDto<MessageEntity>> {
+    const queryBuilder = this.messageRepository.createQueryBuilder("message");
+
+    queryBuilder
+      .where({ roomId })
+      .orderBy("user.createdAt", pageOptionsDto.order)
+      .skip(pageOptionsDto.skip)
+      .take(pageOptionsDto.take);
+
+    const itemCount = await queryBuilder.getCount();
+    const { entities } = await queryBuilder.getRawAndEntities();
+
+    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+
+    return new PageDto(entities, pageMetaDto);
   }
 
   async addParticipants(
     roomId: string,
     participants: ReadonlyArray<string>,
-  ): Promise<RoomParticipantEntity | RoomParticipantEntity[]> {
-    const entities = participants.map((p) =>
-      RoomParticipantEntity.addParticipant(roomId, p),
+  ): Promise<PageDto<RoomParticipantEntity>> {
+    const roomParticipants = participants.map((p) =>
+      new RoomParticipantEntity(roomId, p).setCreated(),
+    );
+    const entities = await this.roomParticipantRepository.save(
+      roomParticipants,
     );
 
-    return this.roomParticipantRepository.insert(entities);
+    return new PageDto(entities, null);
   }
 
   async removeParticipants(
     roomId: string,
     participants: ReadonlyArray<string>,
-  ) {
-    const entities = participants.map((p) =>
-      RoomParticipantEntity.removeParticipant(roomId, p),
+  ): Promise<void> {
+    const removedParticipants = participants.map((p) =>
+      new RoomParticipantEntity(roomId, p).setDeleted(),
     );
+    await this.roomParticipantRepository.save(removedParticipants);
 
-    return this.roomParticipantRepository.upsert(entities);
+    return;
   }
 }
