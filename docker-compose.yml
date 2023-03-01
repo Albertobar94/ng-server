@@ -1,0 +1,39 @@
+version: "3.8"
+services:
+    ng-server:
+        build: .
+        depends_on:
+            # Our app does not work without our database
+            # so this ensures our database is loaded first
+            - ng-db
+        ports:
+            - "3000:3000"
+        volumes:
+            # Maps our current project directory `.` to
+            # our working directory in the container
+            - ./:/usr/home/app/
+            # node_modules workaround for volumes
+            # https://stackoverflow.com/a/32785014
+            - /usr/home/app/node_modules
+        environment:
+            - ENVIRONMENT=development
+            - PORT=3000
+            - DB_NAME=community_channel
+            - DB_USER=postgres
+            - DB_PWD=postgres
+            - DB_HOST=localhost
+            - DB_PORT=5432
+        command: ["/bin/bash", "./scripts/entrypoint.sh"]
+    ng-db:
+        image: postgres:12-alpine
+        restart: always
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_DATABASE_NAME=community_channel
+        ports:
+            - "5432:5432"
+
+    
+    
+
