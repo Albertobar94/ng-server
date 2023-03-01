@@ -6,12 +6,20 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { randomUUID } from "crypto";
-import { plainToInstance } from "class-transformer";
 import { MESSAGE_CONTENT_TYPE } from "../../shared/constants";
 import { MessageInterface } from "../interface/message.interface";
 
 @Entity({ name: "message" })
 export class MessageEntity implements MessageInterface {
+  constructor(roomId: string, userId: string, value: string) {
+    this.id = randomUUID();
+    this.type = "message";
+    this.contentType = MESSAGE_CONTENT_TYPE.text;
+    this.value = value;
+    this.roomId = roomId;
+    this.userId = userId;
+  }
+
   @PrimaryColumn("uuid")
   readonly id: string;
 
@@ -22,7 +30,7 @@ export class MessageEntity implements MessageInterface {
   readonly type: "message";
 
   @Column({ name: "content_type", enum: MESSAGE_CONTENT_TYPE })
-  readonly contentType: MESSAGE_CONTENT_TYPE;
+  readonly contentType: MESSAGE_CONTENT_TYPE.text;
 
   @Column({ name: "room_id" })
   readonly roomId: string;
@@ -31,28 +39,14 @@ export class MessageEntity implements MessageInterface {
   readonly userId: string;
 
   @CreateDateColumn({ name: "created_at", type: "timestamptz" })
-  readonly createdAt: Date;
+  createdAt: Date;
 
   @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
-  readonly updatedAt: Date;
-  public static createTextMessage(
-    message: Omit<MessageInterface, "id" | "type" | "createdAt" | "updatedAt">,
-  ): MessageEntity {
-    const id = randomUUID();
-    const type = "message";
-    const contentType = "text";
-    const createdAt = new Date();
-    const updatedAt = new Date();
+  updatedAt: Date;
+  public setCreated(): MessageEntity {
+    this.createdAt = new Date();
+    this.updatedAt = new Date();
 
-    return plainToInstance(MessageEntity, {
-      createdAt,
-      updatedAt,
-      value: message.value,
-      roomId: message.roomId,
-      userId: message.userId,
-      contentType,
-      type,
-      id,
-    });
+    return this;
   }
 }

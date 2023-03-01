@@ -13,6 +13,7 @@ import {
 } from "@nestjs/common";
 import { StatusCodes } from "http-status-codes";
 import { ApiNoContentResponse, ApiTags } from "@nestjs/swagger";
+import { PageDto } from "../shared/dto/page.dto";
 import { RoomEntity } from "./entities/room.entity";
 import { MessageEntity } from "./entities/message.entity";
 import { CreateRoomDto } from "./dto/request/create-room.dto";
@@ -21,10 +22,11 @@ import { RoomResponseDto } from "./dto/response/room-response.dto";
 import { MessageRepository } from "./repository/message.repository";
 import { CreateMessageDto } from "./dto/request/create-message.dto";
 import { CommunityChannelService } from "./community-channel.service";
-import { ParticipantsDto } from "./dto/request/create-participants.dto";
 import { doesUserExistsGuard } from "src/guards/does-user-exists.guard";
-import { ApiResponse } from "../shared/decorators/api-response.decorator";
+import { ParticipantsDto } from "./dto/request/create-participants.dto";
 import { MessageResponseDto } from "./dto/response/message-response.dto";
+import { ApiResponse } from "../shared/decorators/api-response.decorator";
+import { RoomParticipantEntity } from "./entities/room-participant.entity";
 
 @Controller("community-channel")
 @UseInterceptors(ClassSerializerInterceptor)
@@ -44,7 +46,9 @@ export class CommunityChannelController {
   @UseGuards(doesUserExistsGuard)
   @HttpCode(StatusCodes.CREATED)
   @Post("/room")
-  createRoom(@Body() createRoomDto: CreateRoomDto) {
+  createRoom(
+    @Body() createRoomDto: CreateRoomDto,
+  ): Promise<PageDto<RoomEntity>> {
     return this.communityChannelService.createRoom(createRoomDto);
   }
 
@@ -53,7 +57,7 @@ export class CommunityChannelController {
   @ApiTags("Room")
   @ApiResponse(RoomResponseDto, StatusCodes.OK)
   @Get("/room/:roomId")
-  getRoom(@Param("roomId") id: RoomEntity["id"]) {
+  getRoom(@Param("roomId") id: RoomEntity["id"]): Promise<PageDto<RoomEntity>> {
     return this.communityChannelService.getRoom(id);
   }
 
@@ -63,7 +67,9 @@ export class CommunityChannelController {
   @HttpCode(StatusCodes.CREATED)
   @UseGuards(doesUserExistsGuard)
   @Post("/room/participants")
-  addParticipants(@Body() { roomId, participants }: ParticipantsDto) {
+  addParticipants(
+    @Body() { roomId, participants }: ParticipantsDto,
+  ): Promise<PageDto<RoomParticipantEntity>> {
     return this.communityChannelService.addParticipants(roomId, participants);
   }
 
@@ -75,7 +81,9 @@ export class CommunityChannelController {
   @UseGuards(doesUserExistsGuard)
   @HttpCode(StatusCodes.NO_CONTENT)
   @Delete("/room/participants")
-  removeParticipants(@Body() { roomId, participants }: ParticipantsDto) {
+  removeParticipants(
+    @Body() { roomId, participants }: ParticipantsDto,
+  ): Promise<void> {
     return this.communityChannelService.removeParticipants(
       roomId,
       participants,
@@ -94,7 +102,7 @@ export class CommunityChannelController {
   getMessages(
     @Param("roomId") roomId: string,
     @Query() pageOptionsDto: PageOptionsDto,
-  ) {
+  ): Promise<PageDto<MessageEntity>> {
     return this.communityChannelService.getMessages(roomId, pageOptionsDto);
   }
 
@@ -105,9 +113,17 @@ export class CommunityChannelController {
   @HttpCode(StatusCodes.CREATED)
   @UseGuards(doesUserExistsGuard)
   @Post("/message/text-message")
-  createTextMessage(@Body() createMessageDto: CreateMessageDto) {
-    const entity = MessageEntity.createTextMessage(createMessageDto);
+  async createTextMessage(
+    @Body() createMessageDto: CreateMessageDto,
+  ): Promise<PageDto<MessageEntity>> {
+    const newMessage = new MessageEntity(
+      createMessageDto.roomId,
+      createMessageDto.userId,
+      createMessageDto.value,
+    ).setCreated();
 
-    return this.messageRepository.save(entity);
+    const entity = await this.messageRepository.save(newMessage);
+
+    return new PageDto(new Array(entity), null);
   }
 }

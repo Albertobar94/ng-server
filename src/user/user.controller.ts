@@ -27,7 +27,9 @@ export class UserController {
   @ApiTags("User")
   @ApiResponse(UserResponseDto, StatusCodes.OK)
   @Get(":id")
-  async getUser(@Param("id") id: UserEntity["id"]) {
+  async getUser(
+    @Param("id") id: UserEntity["id"],
+  ): Promise<PageDto<UserEntity>> {
     const user = await this.userRepository
       .createQueryBuilder()
       .where({ id })
