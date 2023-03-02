@@ -21,6 +21,7 @@ import { RoomEntity } from "./community-channel/entities/room.entity";
         DB_USER: Joi.string().required(),
         DB_PWD: Joi.string().required(),
         DB_NAME: Joi.string().required(),
+        DB_MIGRATIONS_PATH: Joi.string().required(),
       }),
     }),
     TypeOrmModule.forRootAsync({
@@ -41,7 +42,7 @@ import { RoomEntity } from "./community-channel/entities/room.entity";
         ],
         poolSize: process.env.NODE_ENV === "production" ? 1 : 10,
         logging: process.env.NODE_ENV === "production" ? false : true,
-        migrations: ["dist/database/migration/**/*.ts"],
+        migrations: [configService.get("DB_MIGRATIONS_PATH")],
       }),
       dataSourceFactory: async (options) => {
         const dataSource = await new DataSource(options).initialize();

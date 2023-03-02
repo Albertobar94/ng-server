@@ -23,6 +23,7 @@ services:
             - DB_PWD=postgres
             - DB_HOST=ng-db
             - DB_PORT=5432
+            - DB_MIGRATIONS_PATH=dist/database/migration/**/*.js
         command: ["/bin/bash", "./scripts/entrypoint.sh"]
     ng-db:
         image: postgres:12-alpine

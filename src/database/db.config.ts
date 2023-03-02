@@ -11,7 +11,7 @@ const DbMigrationConfig = new DataSource({
   password: process.env.DB_PWD,
   database: process.env.DB_NAME,
   logging: true,
-  migrations: ["src/database/migration/**/*.ts"],
+  migrations: [process.env.DB_MIGRATIONS_PATH],
 });
 
 export default DbMigrationConfig;
