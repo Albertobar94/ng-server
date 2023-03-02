@@ -1,14 +1,17 @@
 import helmet from "helmet";
-import { NestFactory } from "@nestjs/core";
+import { HttpAdapterHost, NestFactory } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
 import { ExecutionTimeInterceptor } from "./interceptors/execution-time.interceptor";
+import { AllExceptionsFilter } from "./exceptions/all-exceptions.filter";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Interceptors
+  const httpAdapterHost = app.get(HttpAdapterHost);
+  app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
   app.useGlobalInterceptors(new ExecutionTimeInterceptor());
 
   // Security headers and cors
