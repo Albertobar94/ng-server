@@ -57,7 +57,7 @@ export class CommunityChannelService {
 
     queryBuilder
       .where({ roomId })
-      .orderBy("user.createdAt", pageOptionsDto.order)
+      .orderBy("message.created_at", pageOptionsDto.order)
       .skip(pageOptionsDto.skip)
       .take(pageOptionsDto.take);
 
