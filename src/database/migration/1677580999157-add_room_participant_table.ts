@@ -13,7 +13,6 @@ export class addRoomParticipantTable1677580999157
           {
             name: "room_id",
             type: "uuid",
-            isPrimary: true,
           },
           {
             name: "participant",

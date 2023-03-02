@@ -18,30 +18,29 @@ export class CommunityChannelService {
     private readonly roomParticipantRepository: RoomParticipantRepository,
   ) {}
 
-  async createRoom({ participants }: CreateRoomDto) {
+  async createRoom({
+    participants,
+  }: CreateRoomDto): Promise<PageDto<RoomEntity>> {
     const room = new RoomEntity().create();
     const newParticipantEntities = participants.map((p) =>
       new RoomParticipantEntity(room.id, p).setJoined(),
     );
-    const [roomEntity, participantEntities] = await Promise.all([
+    const [roomEntity] = await Promise.all([
       this.roomRepository.save(room),
       this.roomParticipantRepository.save(newParticipantEntities),
     ]);
-
-    roomEntity.setParticipants(participantEntities);
 
     return new PageDto(new Array(roomEntity), null);
   }
 
   async getRoom(roomId: string): Promise<PageDto<RoomEntity>> {
-    const entity = await this.roomRepository
+    const roomEntity = await this.roomRepository
       .createQueryBuilder("room")
-      .innerJoinAndSelect("room.participants", "room_participant")
+      .leftJoinAndSelect("room.participants", "room_participant")
       .where({ id: roomId })
       .getMany();
-    // .then((e) => new Array(e));
 
-    return new PageDto(entity, null);
+    return new PageDto(roomEntity, null);
   }
 
   async getMessages(
@@ -71,9 +70,14 @@ export class CommunityChannelService {
     const roomParticipants = participants.map((p) =>
       new RoomParticipantEntity(roomId, p).setJoined(),
     );
-    const entities = await this.roomParticipantRepository.save(
-      roomParticipants,
-    );
+    const entities = await this.roomParticipantRepository
+      .createQueryBuilder()
+      .insert()
+      .into(RoomParticipantEntity)
+      .values(roomParticipants)
+      .returning("*")
+      .execute()
+      .then((r) => r.generatedMaps as RoomParticipantEntity[]);
 
     return new PageDto(entities, null);
   }

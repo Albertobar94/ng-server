@@ -15,10 +15,10 @@ export class RoomParticipantEntity {
     this.participant = participant;
   }
 
-  @PrimaryColumn("uuid", { name: "room_id" })
+  @Column("uuid", { name: "room_id" })
   readonly roomId: string;
 
-  @Column("uuid") // userId
+  @PrimaryColumn("uuid") // userId
   readonly participant: string;
 
   @CreateDateColumn({ name: "joined_at", type: "timestamptz" })
