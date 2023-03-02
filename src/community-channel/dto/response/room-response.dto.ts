@@ -11,8 +11,8 @@ export class RoomResponseDto {
   readonly participants: ReadonlyArray<ParticipantsResponseDto>;
 
   @ApiProperty()
-  readonly createdAt: string;
+  readonly createdAt: Date;
 
   @ApiProperty()
-  readonly updatedAt: string;
+  readonly updatedAt: Date;
 }

@@ -32,18 +32,36 @@
 $ npm install
 ```
 
+## Setting up the DB locally
+
+```bash
+
+# db setup
+$ make db-start
+
+# migrations
+$ npm run db:mig-up
+
+```
 ## Running the app
 
 ```bash
 # development
 $ npm run start
 
-# watch mode
+# watch mode (before setup the db)
 $ npm run start:dev
 
 # production mode
 $ npm run start:prod
+
+# with docker-compose
+$ docker-compose up --build
 ```
+
+## Swagger
+
+[Swagger Documentation Link](http://localhost:3000/api)
 
 ## Test
 

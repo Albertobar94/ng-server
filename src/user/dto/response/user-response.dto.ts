@@ -16,9 +16,9 @@ export class UserResponseDto {
 
   @ApiProperty()
   @IsDateString()
-  readonly createdAt: string;
+  readonly createdAt: Date;
 
   @ApiProperty()
   @IsDateString()
-  readonly updatedAt: string;
+  readonly updatedAt: Date;
 }

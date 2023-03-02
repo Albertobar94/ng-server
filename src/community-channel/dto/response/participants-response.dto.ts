@@ -12,7 +12,7 @@ export class ParticipantsResponseDto {
 
   @ApiProperty()
   @IsDateString()
-  readonly createdAt: string;
+  readonly createdAt: Date;
 
   @ApiProperty()
   @IsDateString()
