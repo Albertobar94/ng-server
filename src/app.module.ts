@@ -48,7 +48,6 @@ import { RoomEntity } from "./community-channel/entities/room.entity";
         return dataSource;
       },
     }),
-    ConfigModule.forRoot(),
     CommunityChannelModule,
     UserModule,
   ],
