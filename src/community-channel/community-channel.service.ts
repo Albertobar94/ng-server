@@ -21,7 +21,7 @@ export class CommunityChannelService {
   async createRoom({ participants }: CreateRoomDto) {
     const room = new RoomEntity().create();
     const newParticipantEntities = participants.map((p) =>
-      new RoomParticipantEntity(room.id, p).setCreated(),
+      new RoomParticipantEntity(room.id, p).setJoined(),
     );
     const [roomEntity, participantEntities] = await Promise.all([
       this.roomRepository.save(room),
@@ -35,16 +35,11 @@ export class CommunityChannelService {
 
   async getRoom(roomId: string): Promise<PageDto<RoomEntity>> {
     const entity = await this.roomRepository
-      .createQueryBuilder()
-      .leftJoinAndSelect(
-        "room.participants",
-        "room_participant",
-        "room_participant.room_id = :roomId",
-        { roomId },
-      )
+      .createQueryBuilder("room")
+      .innerJoinAndSelect("room.participants", "room_participant")
       .where({ id: roomId })
-      .getOne()
-      .then((e) => new Array(e));
+      .getMany();
+    // .then((e) => new Array(e));
 
     return new PageDto(entity, null);
   }
@@ -74,7 +69,7 @@ export class CommunityChannelService {
     participants: ReadonlyArray<string>,
   ): Promise<PageDto<RoomParticipantEntity>> {
     const roomParticipants = participants.map((p) =>
-      new RoomParticipantEntity(roomId, p).setCreated(),
+      new RoomParticipantEntity(roomId, p).setJoined(),
     );
     const entities = await this.roomParticipantRepository.save(
       roomParticipants,
@@ -88,7 +83,7 @@ export class CommunityChannelService {
     participants: ReadonlyArray<string>,
   ): Promise<void> {
     const removedParticipants = participants.map((p) =>
-      new RoomParticipantEntity(roomId, p).setDeleted(),
+      new RoomParticipantEntity(roomId, p).setLeft(),
     );
     await this.roomParticipantRepository.save(removedParticipants);
 

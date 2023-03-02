@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsBoolean, IsDateString, IsUUID } from "class-validator";
+import { IsDateString, IsUUID } from "class-validator";
 
 export class ParticipantsResponseDto {
   @ApiProperty()
@@ -12,13 +12,9 @@ export class ParticipantsResponseDto {
 
   @ApiProperty()
   @IsDateString()
-  readonly createdAt: Date;
+  readonly joinedAt: Date;
 
   @ApiProperty()
   @IsDateString()
-  readonly deletedAt?: Date;
-
-  @ApiProperty()
-  @IsBoolean()
-  readonly deleted: boolean;
+  readonly leftAt?: Date;
 }

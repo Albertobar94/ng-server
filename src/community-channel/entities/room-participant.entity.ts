@@ -1,4 +1,12 @@
-import { Column, CreateDateColumn, Entity, PrimaryColumn } from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+} from "typeorm";
+import { RoomEntity } from "./room.entity";
 
 @Entity({ name: "room_participant" })
 export class RoomParticipantEntity {
@@ -13,25 +21,24 @@ export class RoomParticipantEntity {
   @Column("uuid") // userId
   readonly participant: string;
 
-  @CreateDateColumn({ name: "created_at", type: "timestamptz" })
-  createdAt: Date;
+  @CreateDateColumn({ name: "joined_at", type: "timestamptz" })
+  joinedAt: Date;
 
-  @Column("timestamptz", { name: "deleted_at", nullable: true })
-  deletedAt?: Date;
+  @Column("timestamptz", { name: "left_at", nullable: true })
+  leftAt?: Date;
 
-  @Column("boolean", { default: false })
-  deleted: boolean;
+  @ManyToOne(() => RoomEntity, (room) => room.participants)
+  @JoinColumn({ name: "room_id" })
+  readonly room: RoomEntity;
 
-  public setCreated(): RoomParticipantEntity {
-    this.deleted = false;
-    this.createdAt = new Date();
+  public setJoined(): RoomParticipantEntity {
+    this.joinedAt = new Date();
 
     return this;
   }
 
-  public setDeleted(): RoomParticipantEntity {
-    this.deleted = true;
-    this.deletedAt = new Date();
+  public setLeft(): RoomParticipantEntity {
+    this.leftAt = new Date();
 
     return this;
   }

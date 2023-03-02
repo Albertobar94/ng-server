@@ -21,17 +21,12 @@ export class addRoomParticipantTable1677580999157
             isPrimary: true,
           },
           {
-            name: "deleted",
-            type: "boolean",
-            default: false,
-          },
-          {
-            name: "created_at",
+            name: "joined_at",
             type: "timestamptz",
             isNullable: false,
           },
           {
-            name: "deleted_at",
+            name: "left_at",
             type: "timestamptz",
             isNullable: true,
           },
